@@ -24,7 +24,7 @@ const uint8_t IFLASH_BIOSIMG_SIGNATURE[] = {
 #define IFLASH_BIOSIMG_SIGNATURE_LENGTH 16 
 
 typedef struct _IFLASH_BIOSIMG_HEADER {
-    uint8_t  Signature[16];
+    uint8_t  Signature[IFLASH_BIOSIMG_SIGNATURE_LENGTH];
     uint32_t FullSize;
     uint32_t UsedSize;
 } IFLASH_BIOSIMG_HEADER;
@@ -79,12 +79,12 @@ int main(int argc, char* argv[])
     /* Check for arguments count */
     if (argc < 3)
     {
-        printf("InsydeFlashExtractor v0.1\n\nUsage: extractor INFILE OUTFILE");
+        printf("InsydeFlashExtractor v0.2\n\nUsage: %s INFILE OUTFILE\n", argv[0]);
         return ERR_INVALID_PARAMETER;
     }
 
     /* Open input file */
-    in_file = fopen(argv[1], "r+b");
+    in_file = fopen(argv[1], "rb");
     if(!in_file)
     {
         perror("Input file can't be opened");
@@ -104,7 +104,7 @@ int main(int argc, char* argv[])
         return ERR_OUT_OF_MEMORY;
     }
     
-    /* Read whole input file to input buffer */
+    /* Read the whole input file into input buffer */
     read = fread((void*)in_buffer, sizeof(char), filesize, in_file);
     if (read != filesize)
     {
@@ -113,15 +113,15 @@ int main(int argc, char* argv[])
     }
     end = in_buffer + filesize - 1;
 
-    /* Search for signature in file */
+    /* Search for the signature in the input buffer */
     found = find_pattern(in_buffer, end, IFLASH_BIOSIMG_SIGNATURE, IFLASH_BIOSIMG_SIGNATURE_LENGTH);
     if (!found)
     {
-        printf("Insyde BIOS image signature not found in input file");
+        printf("Insyde BIOS image signature not found in input file\n");
         return ERR_NOT_FOUND;
     }
 
-    /* Populate header and read used size */
+    /* Populate the header and read used size */
     header = (IFLASH_BIOSIMG_HEADER*) found;
     found += sizeof(IFLASH_BIOSIMG_HEADER);
     filesize = header->UsedSize;
@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
         return ERR_FILE_WRITE;
     }
     
-    /* All done */
-    printf("File %s successfully extracted", argv[2]);
+    /* Done */
+    printf("File %s successfully extracted\n", argv[2]);
     return ERR_SUCCESS;
 }
